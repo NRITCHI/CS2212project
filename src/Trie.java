@@ -11,11 +11,6 @@ public class Trie {
      */
     private static class TrieNode{
         /**
-         * the character that the node represents
-         */
-        public char content;
-
-        /**
          * hash map of all the child nodes
          */
         public HashMap<Character, TrieNode> children = new HashMap<>();
