@@ -4,14 +4,58 @@
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Correction {
     
     // Method to get corrections for a given text
-    public Pair<Integer, Integer[]> GetCorrections(String text) {
-        // Return a pair containing the index of the error and an array of integer?
-        return null;
+
+
+
+    public Pair<Integer, Integer>[] GetCorrections(String text) {
+        // Pattern for words (sequences of characters separated by spaces or punctuation)
+        //Pattern pattern = Pattern.compile("\\b\\w+\\b");
+        //seperate a string into words by space or punctuation as long as it is not entirely numbers
+        Pattern pattern = Pattern.compile("\\b(?![0-9]+\\b)\\w+\\b");
+        Matcher matcher = pattern.matcher(text);
+
+        ArrayList<Pair<Integer, Integer>> pairsList = new ArrayList<>();
+
+        while (matcher.find()) {
+            // Start index of the word
+            int startIndex = matcher.start();
+            // Length of the word
+            int wordLength = matcher.group().length();
+
+            pairsList.add(new Pair<>(startIndex, wordLength));
+        }
+
+        // Convert ArrayList to array
+        Pair<Integer, Integer>[] pairsArray = new Pair[pairsList.size()];
+        pairsArray = pairsList.toArray(pairsArray);
+
+    
+        for (Pair<Integer, Integer> pair : pairsArray) {
+            int startIndex = pair.getKey();
+            int wordLength = pair.getValue();
+            String word = text.substring(startIndex, startIndex + wordLength);
+    
+            String[] spellingSuggestions = CheckSpelling(word);
+    
+            if (spellingSuggestions.length > 0) {
+                // Call another method or perform an action based on the suggestions
+                AddCorrection(CorrectionType.Misspelling, pair, spellingSuggestions);
+            }
+        }
+
+        return pairsArray;
     }
+
+
+
+
+ 
 
     // Method to check spelling in a given string
     public String[] CheckSpelling(String word) {
