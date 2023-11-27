@@ -8,14 +8,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Correction {
+
+
+    private Window window; // Reference to Window object
+
+    // Constructor modified to accept a Window object
+    public Correction(Window window) {
+        this.window = window;
+    }
     
     // Method to get corrections for a given text
-
-
-
     public Pair<Integer, Integer>[] GetCorrections(String text) {
-        // Pattern for words (sequences of characters separated by spaces or punctuation)
-        //Pattern pattern = Pattern.compile("\\b\\w+\\b");
+       
         //seperate a string into words by space or punctuation as long as it is not entirely numbers
         Pattern pattern = Pattern.compile("\\b(?![0-9]+\\b)\\w+\\b");
         Matcher matcher = pattern.matcher(text);
@@ -44,8 +48,8 @@ public class Correction {
             String[] spellingSuggestions = CheckSpelling(word);
     
             if (spellingSuggestions.length > 0) {
-                // Call another method or perform an action based on the suggestions
-                AddCorrection(CorrectionType.Misspelling, pair, spellingSuggestions);
+                
+                window.addCorrection(CorrectionType.Misspelling, pair, spellingSuggestions);
             }
         }
 
@@ -65,7 +69,7 @@ public class Correction {
 
     // Method to check spelling in a given string
     public String[] CheckSpelling(String word) {
-        //return new String[] { "hello", "world" };
+    
 
         List<String> suggestions = new ArrayList<>();
 
@@ -120,15 +124,11 @@ public class Correction {
 
         // Convert suggestions list to an array
         return suggestions.toArray(new String[0]);
-
-
-
-
-
     }
 
 
     private void CheckCapitalization(String text, Pair<Integer, Integer>[] pairs) {
+        //List<String> capitalizationSuggestions = new ArrayList<>();
         // Regular expression to match a word after a punctuation mark
         Pattern pattern = Pattern.compile("(?<=\\.|!|\\?)\\s+[a-z]");
         Matcher matcher = pattern.matcher(text);
@@ -138,8 +138,10 @@ public class Correction {
             int wordLength = matcher.end() - startIndex;
             Pair<Integer, Integer> pair = new Pair<>(startIndex, wordLength);
 
-            // AddCorrection for miscapitalization with empty suggestions
-            AddCorrection(CorrectionType.Miscapitalization, pair, new String[]{});
+
+            String suggestion = text.substring(startIndex, startIndex + 1).toUpperCase() + text.substring(startIndex + 1, startIndex + wordLength);
+            //capitalizationSuggestions.add(suggestion);
+            window.addCorrection(CorrectionType.Miscapitalization, pair, new String[]{suggestion});
         }
 
         // Regular expression to find words with mixed capitalization
@@ -152,8 +154,32 @@ public class Correction {
             Pair<Integer, Integer> pair = new Pair<>(startIndex, wordLength);
 
             // AddCorrection for mixed capitalization with empty suggestions
-            AddCorrection(CorrectionType.Miscapitalization, pair, new String[]{});
+            String suggestion = text.substring(startIndex, startIndex + wordLength).toLowerCase();
+            //capitalizationSuggestions.add(suggestion);
+            window.addCorrection(CorrectionType.Miscapitalization, pair, new String[]{suggestion});
         }
+
+        //for people places and things already capitalized in the dictionary
+        pattern = Pattern.compile("\\b[a-z]\\w*\\b");
+        matcher = pattern.matcher(text);
+
+        while (matcher.find()) {
+            String word = matcher.group();
+            if (!Dictionary.FindWord(word)) {
+                int startIndex = matcher.start();
+                int wordLength = word.length();
+                Pair<Integer, Integer> pair = new Pair<>(startIndex, wordLength);
+
+                // Suggestion: Capitalize the word
+                String suggestion = word.substring(0, 1).toUpperCase() + word.substring(1);
+                if(Dictionary.FindWord(suggestion)){
+                    window.addCorrection(CorrectionType.Miscapitalization, pair, new String[]{suggestion});
+                    //capitalizationSuggestions.add(suggestion);
+                }
+            }
+
+        }
+        //AddCorrection(CorrectionType.Miscapitalization, pair, capitalizationSuggestions);
     }
 
     // New method to detect and correct double words
@@ -168,7 +194,9 @@ public class Correction {
             Pair<Integer, Integer> pair = new Pair<>(startIndex, wordLength);
 
             // AddCorrection for double words with empty suggestions
-            AddCorrection(CorrectionType.DoubleWords, pair, new String[]{});
+            String suggestion = matcher.group(1);
+            window.addCorrection(CorrectionType.DoubleWords, pair, new String[]{suggestion});
+        
         }
     }
     
