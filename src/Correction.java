@@ -49,6 +49,12 @@ public class Correction {
             }
         }
 
+        // Detect miscapitalization
+        CheckCapitalization(text, pairsArray);
+
+        // Detect double words
+        CorrectDoubleWords(text, pairsArray);
+
         return pairsArray;
     }
 
@@ -121,10 +127,49 @@ public class Correction {
 
     }
 
-    // Method to check capitalization in a given string
-    public String CheckCapitalization(String text) {
-      
-        return "";
+
+    private void CheckCapitalization(String text, Pair<Integer, Integer>[] pairs) {
+        // Regular expression to match a word after a punctuation mark
+        Pattern pattern = Pattern.compile("(?<=\\.|!|\\?)\\s+[a-z]");
+        Matcher matcher = pattern.matcher(text);
+
+        while (matcher.find()) {
+            int startIndex = matcher.start() + 1; // Skipping the space
+            int wordLength = matcher.end() - startIndex;
+            Pair<Integer, Integer> pair = new Pair<>(startIndex, wordLength);
+
+            // AddCorrection for miscapitalization with empty suggestions
+            AddCorrection(CorrectionType.Miscapitalization, pair, new String[]{});
+        }
+
+        // Regular expression to find words with mixed capitalization
+        pattern = Pattern.compile("\\b(?=[A-Za-z]*[a-z])(?=[A-Za-z]*[A-Z])[A-Za-z]+\\b");
+        matcher = pattern.matcher(text);
+
+        while (matcher.find()) {
+            int startIndex = matcher.start();
+            int wordLength = matcher.group().length();
+            Pair<Integer, Integer> pair = new Pair<>(startIndex, wordLength);
+
+            // AddCorrection for mixed capitalization with empty suggestions
+            AddCorrection(CorrectionType.Miscapitalization, pair, new String[]{});
+        }
+    }
+
+    // New method to detect and correct double words
+    private void CorrectDoubleWords(String text, Pair<Integer, Integer>[] pairs) {
+        // Regular expression to match double words
+        Pattern pattern = Pattern.compile("\\b(\\w+)\\s+\\1\\b", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(text);
+
+        while (matcher.find()) {
+            int startIndex = matcher.start();
+            int wordLength = matcher.group().length();
+            Pair<Integer, Integer> pair = new Pair<>(startIndex, wordLength);
+
+            // AddCorrection for double words with empty suggestions
+            AddCorrection(CorrectionType.DoubleWords, pair, new String[]{});
+        }
     }
     
 }
