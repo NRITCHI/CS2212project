@@ -1,56 +1,64 @@
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
-import java.awt.event.WindowEvent;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.Arrays;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.border.LineBorder;
 
 public class Window extends JFrame {
 
     public Window() {
-        
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
-        setLocationRelativeTo(null);
 
-        
+        // window
+        setTitle("Group 31 Spell Checker");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(1280, 720);
+        setLocationRelativeTo(null);
+        setVisible(true);
+
+        // navigation container
+        JPanel navbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        add(navbar, BorderLayout.NORTH);
+
+        // File Dropdown
+        JButton newFile = new JButton("New");
+        JButton load = new JButton("Load");
+        JButton save = new JButton("Save");
+
+        // todo: make functions work
+        newFile.addActionListener(e -> File.New());
+        load.addActionListener(e -> File.Load());
+        save.addActionListener(e -> File.Save());
+
+        navbar.add(newFile);
+        navbar.add(load);
+        navbar.add(save);
+
+
+        // help button
         JButton helpButton = new JButton("Help");
+        helpButton.setMaximumSize(new Dimension(50, 50));
         helpButton.addActionListener(e -> {
             HelpMenu helpMenu = new HelpMenu();
             helpMenu.showWindow();
             scheduleForceClose();
-            
-            
         });
-
-
-        helpButton.setMaximumSize(new Dimension(50, 50));
-
-        JPanel navbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         navbar.add(helpButton, BorderLayout.WEST);
-        add(navbar, BorderLayout.NORTH);
 
 
+        // main container
+        JPanel main = new JPanel();
+        main.setLayout(new GridLayout(1, 1));
+        add(main);
 
+        // text box
+        main.add(TextDisplay.GetTextObject());
+
+        // corrections section
         JPanel coloredBlock = new JPanel();
-        coloredBlock.setBorder(new LineBorder(Color.BLUE)); 
-
-        setLayout(new GridLayout(1, 1));
-        
-
-        add(new JPanel()); 
-        add(coloredBlock);  
-        setVisible(true);
+        coloredBlock.setBorder(new LineBorder(Color.BLUE));
+        main.add(coloredBlock);
     }
 
     public void addCorrection(CorrectionType type, Pair<Integer, Integer> location, String[] options) {
@@ -82,6 +90,17 @@ public class Window extends JFrame {
             Thread.currentThread().interrupt();
         }
     }
+
+    public static void AddCorrection(CorrectionType type, Pair<Integer, Integer> location, String[] options){
+        // todo
+    }
+
+    public static void ClearCorrectionQueue(){
+        // todo
+        // ik this isn't in the class diagram but its needed so we dont have multiple of the same correction
+        // Thanks, -Ryan
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new Window());
     }
