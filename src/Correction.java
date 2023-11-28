@@ -14,6 +14,7 @@ public class Correction {
     public static Pair<Integer, Integer>[] GetCorrections(String text){
        
         //seperate a string into words by space or punctuation as long as it is not entirely numbers
+        //word boundry, not all numbers, word boundry, character, word boundry
         Pattern pattern = Pattern.compile("\\b(?![0-9]+\\b)\\w+\\b");
         Matcher matcher = pattern.matcher(text);
 
@@ -123,7 +124,7 @@ public class Correction {
     private static void CheckCapitalization(String text, Pair<Integer, Integer>[] pairs) {
         //List<String> capitalizationSuggestions = new ArrayList<>();
         // Regular expression to match a word after a punctuation mark
-        Pattern pattern = Pattern.compile("(?<=\\.|!|\\?)\\s+[a-z]");
+        Pattern pattern = Pattern.compile("(?<=\\.|!|\\?)\\s+[a-zA-Z]");
         Matcher matcher = pattern.matcher(text);
 
         while (matcher.find()) {
@@ -138,6 +139,7 @@ public class Correction {
         }
 
         // Regular expression to find words with mixed capitalization
+        //uppercase followed by lowercase cannot have uppercase after
         pattern = Pattern.compile("\\b(?=[A-Za-z]*[a-z])(?=[A-Za-z]*[A-Z])[A-Za-z]+\\b");
         matcher = pattern.matcher(text);
 
@@ -154,6 +156,7 @@ public class Correction {
         }
 
         //for people places and things already capitalized in the dictionary
+        //lowercase word
         pattern = Pattern.compile("\\b[a-z]\\w*\\b");
         matcher = pattern.matcher(text);
 
