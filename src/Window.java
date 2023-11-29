@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.concurrent.*;
 
@@ -7,6 +8,9 @@ import javax.swing.*;
 import javax.swing.border.LineBorder;
 
 public class Window extends JFrame {
+
+    private static JPanel corrections;
+    private static JButton testFixButton;
 
     public Window() {
 
@@ -56,13 +60,40 @@ public class Window extends JFrame {
         main.add(TextDisplay.GetTextObject());
 
         // corrections section
-        JPanel coloredBlock = new JPanel();
-        coloredBlock.setBorder(new LineBorder(Color.BLUE));
-        main.add(coloredBlock);
+        corrections = new JPanel();
+        corrections.setBorder(new LineBorder(Color.BLUE));
+        main.add(corrections);
+
+
+        testFixButton = new JButton("Fix");
+        corrections.add(testFixButton);
+        testFixButton.setVisible(true);
     }
 
-    public void addCorrection(CorrectionType type, Pair<Integer, Integer> location, String[] options) {
-        System.out.println("Correction added: " + type + " at location " + location + " with options: " + Arrays.toString(options));
+    public static void AddCorrection(CorrectionType type, Pair<Integer, Integer> location, String[] options) {
+
+        // switch to ui thread
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(() -> AddCorrection(type, location, options));
+            return;
+        }
+
+        System.out.println("Correction added: " + type + " at location (" + location.first + ", " + location.second + ") with options: " + Arrays.toString(options));
+        if(options.length == 1){
+            testFixButton.addActionListener(l -> TextDisplay.ReplaceSection(location, options[0]));
+        }
+    }
+
+    public static void ClearCorrectionQueue(){
+        // switch to ui thread
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(() -> ClearCorrectionQueue());
+            return;
+        }
+
+        for( ActionListener al : testFixButton.getActionListeners() ) {
+            testFixButton.removeActionListener( al );
+        }
     }
         
     private void scheduleForceClose() {
@@ -77,8 +108,6 @@ public class Window extends JFrame {
         Window.this.dispatchEvent(new WindowEvent(Window.this, WindowEvent.WINDOW_CLOSING));
     }
 
-    
-
     public static void wait(int ms)
     {
         try
@@ -91,17 +120,8 @@ public class Window extends JFrame {
         }
     }
 
-    public static void AddCorrection(CorrectionType type, Pair<Integer, Integer> location, String[] options){
-        // todo
-    }
-
-    public static void ClearCorrectionQueue(){
-        // todo
-        // ik this isn't in the class diagram but its needed so we dont have multiple of the same correction
-        // Thanks, -Ryan
-    }
-
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
+        Dictionary.StartDictionary();
         SwingUtilities.invokeLater(() -> new Window());
     }
 }

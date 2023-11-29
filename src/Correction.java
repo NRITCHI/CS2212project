@@ -9,12 +9,19 @@ import java.util.regex.Pattern;
 
 public class Correction {
 
+    private static ArrayList<Character> endingPunctuation;
 
     // Method to get corrections for a given text
     public static Pair<Integer, Integer>[] GetCorrections(String text){
-       
+
+        if(endingPunctuation == null){
+            endingPunctuation = new ArrayList<>();
+            endingPunctuation.add('.');
+            endingPunctuation.add('?');
+            endingPunctuation.add('!');
+        }
+
         //seperate a string into words by space or punctuation as long as it is not entirely numbers
-        //word boundry, not all numbers, word boundry, character, word boundry
         Pattern pattern = Pattern.compile("\\b(?![0-9]+\\b)\\w+\\b");
         Matcher matcher = pattern.matcher(text);
 
@@ -33,33 +40,92 @@ public class Correction {
         Pair<Integer, Integer>[] pairsArray = new Pair[pairsList.size()];
         pairsArray = pairsList.toArray(pairsArray);
 
-    
-        for (Pair<Integer, Integer> pair : pairsArray) {
-            int startIndex = pair.first;
-            int wordLength = pair.second;
+        ArrayList<Pair<Integer, Integer>> errorList = new ArrayList<>();
+
+        for (int i = 0; i < pairsArray.length; i++) {
+            int startIndex = pairsArray[i].first;
+            int wordLength = pairsArray[i].second;
             String word = text.substring(startIndex, startIndex + wordLength);
-    
+
+            // check spelling
             String[] spellingSuggestions = CheckSpelling(word);
     
             if (spellingSuggestions.length > 0) {
                 
-                Window.AddCorrection(CorrectionType.Misspelling, pair, spellingSuggestions);
+                //Window.AddCorrection(CorrectionType.Misspelling, pairsArray[i], spellingSuggestions);
+                //errorList.add(pairsArray[i]);
+                //continue;
+            }
+
+            // check capitalization
+            boolean shouldBeUpper = false;
+            boolean missingSpace = false;
+            boolean capitalized = word.substring(0, 1).toUpperCase().equals(word.substring(0, 1));
+
+            if (i == 0 || text.charAt(startIndex - 1) == '\n'){
+                shouldBeUpper = true;
+            }
+            else if (text.charAt(startIndex - 1) == ' ' && endingPunctuation.contains(text.charAt(startIndex - 2))){
+                shouldBeUpper = true;
+            }
+            else if (endingPunctuation.contains(text.charAt(startIndex - 1))){
+                shouldBeUpper = true;
+                missingSpace = true;
+            }
+            else if (Dictionary.FindWord(word.substring(0, 1).toUpperCase() + word.substring(1))){
+                shouldBeUpper = true;
+            }
+
+            if(shouldBeUpper && !capitalized) {
+                // lower case
+                String correction = word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase();
+                if(missingSpace)
+                    correction = " " + correction;
+                Window.AddCorrection(CorrectionType.Miscapitalization, pairsArray[i], new String[]{correction});
+                errorList.add(pairsArray[i]);
+                continue;
+            }
+            else if (!shouldBeUpper && capitalized) {
+
+                String correction = word.toLowerCase();
+                Window.AddCorrection(CorrectionType.Miscapitalization, pairsArray[i], new String[]{correction});
+                errorList.add(pairsArray[i]);
+                continue;
+            }
+
+            // check double words
+            if(i == 0 || startIndex < 2)
+                continue;
+
+            if(text.charAt(startIndex - 1) != ' ')
+                continue;
+
+            if(text.charAt(pairsArray[i-1].first + pairsArray[i-1].second - 1) != text.charAt(startIndex - 2))
+                continue;
+
+            // check if word is equal to prior word
+            if(word.equals(text.substring(pairsArray[i-1].first, pairsArray[i-1].first + pairsArray[i-1].second))){
+
+                System.out.println(text.charAt(startIndex - 2));
+
+                Pair<Integer, Integer> location = new Pair<Integer, Integer>(pairsArray[i].first - 1, pairsArray[i].second + 1);
+
+                Window.AddCorrection(CorrectionType.DoubleWords, location, new String[]{""});
+                errorList.add(pairsArray[i]);
             }
         }
 
         // Detect miscapitalization
-        CheckCapitalization(text, pairsArray);
+        //CheckCapitalization(text, pairsArray);
 
         // Detect double words
-        CorrectDoubleWords(text, pairsArray);
+        //CorrectDoubleWords(text, pairsArray);
 
-        return pairsArray;
+        Pair<Integer, Integer>[] errorArray = new Pair[]{};
+        return errorList.toArray(errorArray);
     }
 
 
-
-
- 
 
     // Method to check spelling in a given string
     public static String[] CheckSpelling(String word) {
@@ -124,7 +190,7 @@ public class Correction {
     private static void CheckCapitalization(String text, Pair<Integer, Integer>[] pairs) {
         //List<String> capitalizationSuggestions = new ArrayList<>();
         // Regular expression to match a word after a punctuation mark
-        Pattern pattern = Pattern.compile("(?<=\\.|!|\\?)\\s+[a-zA-Z]");
+        Pattern pattern = Pattern.compile("(?<=\\.|!|\\?)\\s+[a-z]");
         Matcher matcher = pattern.matcher(text);
 
         while (matcher.find()) {
@@ -139,7 +205,6 @@ public class Correction {
         }
 
         // Regular expression to find words with mixed capitalization
-        //uppercase followed by lowercase cannot have uppercase after
         pattern = Pattern.compile("\\b(?=[A-Za-z]*[a-z])(?=[A-Za-z]*[A-Z])[A-Za-z]+\\b");
         matcher = pattern.matcher(text);
 
@@ -156,7 +221,6 @@ public class Correction {
         }
 
         //for people places and things already capitalized in the dictionary
-        //lowercase word
         pattern = Pattern.compile("\\b[a-z]\\w*\\b");
         matcher = pattern.matcher(text);
 
