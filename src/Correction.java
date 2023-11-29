@@ -106,8 +106,6 @@ public class Correction {
             // check if word is equal to prior word
             if(word.equals(text.substring(pairsArray[i-1].first, pairsArray[i-1].first + pairsArray[i-1].second))){
 
-                System.out.println(text.charAt(startIndex - 2));
-
                 Pair<Integer, Integer> location = new Pair<Integer, Integer>(pairsArray[i].first - 1, pairsArray[i].second + 1);
 
                 Window.AddCorrection(CorrectionType.DoubleWords, location, new String[]{""});

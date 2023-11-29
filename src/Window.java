@@ -1,16 +1,19 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.*;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+
 public class Window extends JFrame {
 
     private static JPanel corrections;
-    private static JButton testFixButton;
+    private static ArrayList<JPanel> correctionTiles = new ArrayList<>();
 
     public Window() {
 
@@ -53,21 +56,45 @@ public class Window extends JFrame {
 
         // main container
         JPanel main = new JPanel();
-        main.setLayout(new GridLayout(1, 1));
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.weighty = 1;
+        main.setLayout(new GridBagLayout());
+        main.setAlignmentX(0.75f);
         add(main);
 
         // text box
-        main.add(TextDisplay.GetTextObject());
+        constraints.gridx = 0;
+        constraints.weightx = 0.67; // 2/3 of the available width
+        main.add(TextDisplay.GetTextObject(), constraints);
 
         // corrections section
         corrections = new JPanel();
-        corrections.setBorder(new LineBorder(Color.BLUE));
-        main.add(corrections);
+        JScrollPane scroll = new JScrollPane(corrections, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+        constraints.gridx = 1;
+        constraints.weightx = 0.33; // 1/3 of the available width
+        main.add(scroll, constraints);
 
-
-        testFixButton = new JButton("Fix");
+        /*testFixButton = new JButton("Fix");
         corrections.add(testFixButton);
-        testFixButton.setVisible(true);
+        testFixButton.setVisible(true);*/
+        corrections.setLayout(new GridBagLayout());
+    }
+
+
+    static int count = 0;
+    private static JPanel CreateCorrectionBlock(){
+        JPanel panel = new JPanel();
+
+        panel.setBackground(Color.darkGray);
+        panel.setBorder(new LineBorder(Color.RED));
+        panel.setPreferredSize(new Dimension(10, 150));
+        count++;
+        JLabel text = new JLabel("" + count);
+        panel.add(text);
+
+        correctionTiles.add(panel);
+        return panel;
     }
 
     public static void AddCorrection(CorrectionType type, Pair<Integer, Integer> location, String[] options) {
@@ -78,22 +105,32 @@ public class Window extends JFrame {
             return;
         }
 
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weightx = 1;
+        c.insets = new Insets(5, 5, 5, 5);
+        c.gridx = 0;
+
+        corrections.add(CreateCorrectionBlock(), c);
+        corrections.revalidate();
+        corrections.repaint();
+
         System.out.println("Correction added: " + type + " at location (" + location.first + ", " + location.second + ") with options: " + Arrays.toString(options));
-        if(options.length == 1){
-            testFixButton.addActionListener(l -> TextDisplay.ReplaceSection(location, options[0]));
-        }
     }
 
     public static void ClearCorrectionQueue(){
         // switch to ui thread
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> ClearCorrectionQueue());
+            SwingUtilities.invokeLater(Window::ClearCorrectionQueue);
             return;
         }
 
-        for( ActionListener al : testFixButton.getActionListeners() ) {
-            testFixButton.removeActionListener( al );
+        for(JPanel panel: correctionTiles){
+            corrections.remove(panel);
         }
+        corrections.revalidate();
+        corrections.repaint();
+        count = 0;
     }
         
     private void scheduleForceClose() {
