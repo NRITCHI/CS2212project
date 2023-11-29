@@ -119,11 +119,17 @@ public class TextDisplay {
      * Helper function that runs the Correction thread
      */
     private static void CorrectionThread(){
-        Pair<Integer, Integer>[] locations = Correction.GetCorrections(textbox.getText());
 
-        textbox.getStyledDocument().setCharacterAttributes(0, textbox.getText().length(), baseAttribute, true);
-        for (Pair<Integer, Integer> location: locations){
-            textbox.getStyledDocument().setCharacterAttributes(location.first, location.second, redAttribute, true);
+        try{
+            Pair<Integer, Integer>[] locations = Correction.GetCorrections(textbox.getStyledDocument().getText(0, textbox.getStyledDocument().getLength()));
+
+            textbox.getStyledDocument().setCharacterAttributes(0, textbox.getText().length(), baseAttribute, true);
+            for (Pair<Integer, Integer> location: locations){
+                textbox.getStyledDocument().setCharacterAttributes(location.first, location.second, redAttribute, false);
+            }
+        }
+        catch (Exception e){
+            // this is unreachable since the getText values are from the text object
         }
     }
 
