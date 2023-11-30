@@ -48,13 +48,15 @@ public class Correction {
             String word = text.substring(startIndex, startIndex + wordLength);
 
             // check spelling
-            String[] spellingSuggestions = CheckSpelling(word);
-    
-            if (spellingSuggestions.length > 0) {
+            String[] spellingSuggestions = null;
+            if(!(Dictionary.FindWord(word.toLowerCase()) || Dictionary.FindWord(word.toUpperCase()) || Dictionary.FindWord(word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase()))){
+                spellingSuggestions = CheckSpelling(word);
+            }
+            if (spellingSuggestions != null) {
                 
-                //Window.AddCorrection(CorrectionType.Misspelling, pairsArray[i], spellingSuggestions);
-                //errorList.add(pairsArray[i]);
-                //continue;
+                Window.AddCorrection(CorrectionType.Misspelling, pairsArray[i], spellingSuggestions);
+                errorList.add(pairsArray[i]);
+                continue;
             }
 
             // check capitalization
