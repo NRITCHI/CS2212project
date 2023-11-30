@@ -7,6 +7,7 @@ import java.util.concurrent.*;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
+import javax.swing.text.BadLocationException;
 
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 
@@ -14,6 +15,38 @@ public class Window extends JFrame {
 
     private static JPanel corrections;
     private static ArrayList<JPanel> correctionTiles = new ArrayList<>();
+    private static ArrayList<CorrectionCase> ignoredCases = new ArrayList<>();
+
+
+    private static class CorrectionCase{
+        public CorrectionType type;
+        public Pair<Integer, Integer> location;
+        public String[] options;
+
+        public CorrectionCase(CorrectionType type, Pair<Integer, Integer> location, String[] options){
+            this.type = type;
+            this.location = location;
+            this.options = options;
+        }
+
+        @Override
+        public boolean equals(Object obj){
+            if (obj == null)
+                return false;
+            if (obj.getClass() != this.getClass())
+                return false;
+
+            final CorrectionCase other = (CorrectionCase) obj;
+            if(this.options.length != other.options.length)
+                return false;
+
+            for(int i = 0; i < this.options.length; i++)
+                if(!this.options[i].equals(other.options[i]))
+                    return false;
+
+            return this.type == other.type && this.location.equals(other.location);
+        }
+    }
 
     public Window() {
 
@@ -53,6 +86,12 @@ public class Window extends JFrame {
         });
         navbar.add(helpButton, BorderLayout.WEST);
 
+        // switch dictionary button
+
+        JButton dictionaryButton = new JButton("Dictionary");
+        dictionaryButton.addActionListener(e -> ModifyDictionary());
+        navbar.add(dictionaryButton);
+
 
         // main container
         JPanel main = new JPanel();
@@ -75,23 +114,109 @@ public class Window extends JFrame {
         constraints.weightx = 0.33; // 1/3 of the available width
         main.add(scroll, constraints);
 
-        /*testFixButton = new JButton("Fix");
-        corrections.add(testFixButton);
-        testFixButton.setVisible(true);*/
         corrections.setLayout(new GridBagLayout());
     }
 
+    private void ModifyDictionary(){
+
+        // create popup
+        JFrame popup = new JFrame("Modify Dictionary");
+        popup.setSize(800, 500);
+        popup.setLocationRelativeTo(this);
+        popup.setVisible(true);
+
+        JTextPane textbox = new JTextPane();
+        JScrollPane scroll = new JScrollPane(textbox);
+        popup.add(scroll);
+
+        // fill textbox
+        String[] words = Dictionary.GetUserDictionary();
+        String text = "";
+        for(String word: words)
+            text += word + "\n";
+        textbox.setText(text);
+
+        // save when closed
+        popup.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+
+                try {
+                    String text = textbox.getStyledDocument().getText(0, textbox.getStyledDocument().getLength());
+                    String[] words = text.replaceAll(" ", "").split("\n");
+                    Dictionary.SetUserDictionary(words);
+
+                } catch (BadLocationException ex) {
+                    // unreachable
+                }
+            }
+        });
+
+        popup.revalidate();
+        popup.repaint();
+    }
 
     static int count = 0;
-    private static JPanel CreateCorrectionBlock(){
+    private static JPanel CreateCorrectionBlock(CorrectionType type, Pair<Integer, Integer> location, String[] options){
         JPanel panel = new JPanel();
 
-        panel.setBackground(Color.darkGray);
+        panel.setBackground(new Color(255, 102, 102));
         panel.setBorder(new LineBorder(Color.RED));
         panel.setPreferredSize(new Dimension(10, 150));
-        count++;
-        JLabel text = new JLabel("" + count);
-        panel.add(text);
+        panel.setLayout(new GridLayout(3, 1));
+
+        JLabel title;
+        JPanel choices = new JPanel();
+        choices.setBackground(new Color(255, 102, 102));
+        switch (type){
+            case Misspelling:
+                title = new JLabel("Misspelling", SwingConstants.CENTER);
+
+                JComboBox<String> dropdown = new JComboBox<>(options);
+                choices.add(dropdown);
+
+                JButton replace = new JButton("Replace");
+                replace.addActionListener(l -> {
+                    String choice = (String)dropdown.getSelectedItem();
+                    TextDisplay.ReplaceSection(location, choice);
+                });
+                choices.add(replace);
+
+                break;
+            case Miscapitalization:
+                title = new JLabel("Miscapitalization", SwingConstants.CENTER);
+
+                JButton change = new JButton("Change");
+                change.addActionListener(l -> TextDisplay.ReplaceSection(location, options[0]));
+                choices.add(change);
+
+                break;
+            case DoubleWords:
+                title = new JLabel("Double Words", SwingConstants.CENTER);
+
+                JButton remove = new JButton("Remove");
+                remove.addActionListener(l -> TextDisplay.ReplaceSection(location, options[0]));
+                choices.add(remove);
+
+                break;
+            default:
+                return null;
+        }
+        title.setFont(new Font("", Font.PLAIN, 28));
+
+        JLabel section = new JLabel("\"" + TextDisplay.GetSection(location) + "\"", SwingConstants.CENTER);
+        section.setFont(new Font("", Font.PLAIN, 24));
+
+        //todo: add functionality
+        JButton ignore = new JButton("Ignore");
+        ignore.addActionListener(l -> {
+            ignoredCases.add(new CorrectionCase(type, location, options));
+            TextDisplay.StartCorrections();
+        });
+        choices.add(ignore);
+
+        panel.add(title);
+        panel.add(section);
+        panel.add(choices);
 
         correctionTiles.add(panel);
         return panel;
@@ -105,17 +230,24 @@ public class Window extends JFrame {
             return;
         }
 
+        System.out.println("Correction added: " + type + " at location (" + location.first + ", " + location.second + ") with options: " + Arrays.toString(options));
+
+        if(ignoredCases.contains(new CorrectionCase(type, location, options)))
+            return;
+
+        JPanel correctionBlock = CreateCorrectionBlock(type, location, options);
+        if(correctionBlock == null)
+            return;
+
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.HORIZONTAL;
         c.weightx = 1;
         c.insets = new Insets(5, 5, 5, 5);
         c.gridx = 0;
 
-        corrections.add(CreateCorrectionBlock(), c);
+        corrections.add(correctionBlock, c);
         corrections.revalidate();
         corrections.repaint();
-
-        System.out.println("Correction added: " + type + " at location (" + location.first + ", " + location.second + ") with options: " + Arrays.toString(options));
     }
 
     public static void ClearCorrectionQueue(){
@@ -131,6 +263,10 @@ public class Window extends JFrame {
         corrections.revalidate();
         corrections.repaint();
         count = 0;
+    }
+
+    public static boolean IsIgnoredCorrection(CorrectionType type, Pair<Integer, Integer> location, String[] options){
+        return ignoredCases.contains(new CorrectionCase(type, location, options));
     }
         
     private void scheduleForceClose() {

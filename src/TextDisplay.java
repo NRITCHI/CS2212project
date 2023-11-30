@@ -94,9 +94,9 @@ public class TextDisplay {
     }
 
     /**
-     * Helper function to start checking for corrections
+     * Starts checking for corrections
      */
-    private static void StartCorrections(){
+    public static void StartCorrections(){
 
         Window.ClearCorrectionQueue();
 
@@ -147,5 +147,13 @@ public class TextDisplay {
      */
     public static String GetText(){
         return textbox.getText();
+    }
+
+    public static String GetSection(Pair<Integer, Integer> location){
+        try {
+            return textbox.getStyledDocument().getText(location.first, location.second);
+        } catch (BadLocationException e) {
+            return "";
+        }
     }
 }
