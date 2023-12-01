@@ -14,8 +14,8 @@ import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 public class Window extends JFrame {
 
     private static JPanel corrections;
-    private static ArrayList<JPanel> correctionTiles = new ArrayList<>();
-    private static ArrayList<CorrectionCase> ignoredCases = new ArrayList<>();
+    private static final ArrayList<JPanel> correctionTiles = new ArrayList<>();
+    private static final ArrayList<CorrectionCase> ignoredCases = new ArrayList<>(1024);
 
 
     private static class CorrectionCase{
@@ -66,7 +66,6 @@ public class Window extends JFrame {
         JButton load = new JButton("Load");
         JButton save = new JButton("Save");
 
-        // todo: make functions work
         newFile.addActionListener(e -> File.New());
         load.addActionListener(e -> File.Load());
         save.addActionListener(e -> File.Save());
@@ -144,6 +143,7 @@ public class Window extends JFrame {
                     String text = textbox.getStyledDocument().getText(0, textbox.getStyledDocument().getLength());
                     String[] words = text.replaceAll(" ", "").split("\n");
                     Dictionary.SetUserDictionary(words);
+                    TextDisplay.StartCorrections();
 
                 } catch (BadLocationException ex) {
                     // unreachable
@@ -206,7 +206,6 @@ public class Window extends JFrame {
         JLabel section = new JLabel("\"" + TextDisplay.GetSection(location) + "\"", SwingConstants.CENTER);
         section.setFont(new Font("", Font.PLAIN, 24));
 
-        //todo: add functionality
         JButton ignore = new JButton("Ignore");
         ignore.addActionListener(l -> {
             ignoredCases.add(new CorrectionCase(type, location, options));
@@ -229,8 +228,6 @@ public class Window extends JFrame {
             SwingUtilities.invokeLater(() -> AddCorrection(type, location, options));
             return;
         }
-
-        System.out.println("Correction added: " + type + " at location (" + location.first + ", " + location.second + ") with options: " + Arrays.toString(options));
 
         if(ignoredCases.contains(new CorrectionCase(type, location, options)))
             return;

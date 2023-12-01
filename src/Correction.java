@@ -53,16 +53,37 @@ public class Correction {
                 spellingSuggestions = CheckSpelling(word);
             }
             if (spellingSuggestions != null) {
-                
-                Window.AddCorrection(CorrectionType.Misspelling, pairsArray[i], spellingSuggestions);
-                errorList.add(pairsArray[i]);
-                continue;
+
+                if(!Window.IsIgnoredCorrection(CorrectionType.Misspelling, pairsArray[i], spellingSuggestions)){
+                    Window.AddCorrection(CorrectionType.Misspelling, pairsArray[i], spellingSuggestions);
+                    errorList.add(pairsArray[i]);
+                    continue;
+                }
             }
 
             // check capitalization
             boolean shouldBeUpper = false;
             boolean missingSpace = false;
+            boolean allCaps = false;
             boolean capitalized = word.substring(0, 1).toUpperCase().equals(word.substring(0, 1));
+
+            if (Dictionary.FindWord(word.toUpperCase())){
+                if(!(Dictionary.FindWord(word.toLowerCase()) || Dictionary.FindWord(word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase()))){
+                    shouldBeUpper = true;
+                    allCaps = true;
+                }
+            }
+
+            if (Dictionary.FindWord(word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())){
+
+                if(!(Dictionary.FindWord(word.toLowerCase()) || Dictionary.FindWord(word.toUpperCase()))){
+                    shouldBeUpper = true;
+                }
+            }
+
+            if(word.equalsIgnoreCase("i")){
+                shouldBeUpper = true;
+            }
 
             if (i == 0 || text.charAt(startIndex - 1) == '\n'){
                 shouldBeUpper = true;
@@ -74,25 +95,29 @@ public class Correction {
                 shouldBeUpper = true;
                 missingSpace = true;
             }
-            else if (Dictionary.FindWord(word.substring(0, 1).toUpperCase() + word.substring(1))){
-                shouldBeUpper = true;
-            }
 
             if(shouldBeUpper && !capitalized) {
                 // lower case
                 String correction = word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase();
                 if(missingSpace)
                     correction = " " + correction;
-                Window.AddCorrection(CorrectionType.Miscapitalization, pairsArray[i], new String[]{correction});
-                errorList.add(pairsArray[i]);
-                continue;
+                if(allCaps)
+                    correction = correction.toUpperCase();
+
+                if(!Window.IsIgnoredCorrection(CorrectionType.Miscapitalization, pairsArray[i], new String[]{correction})){
+                    Window.AddCorrection(CorrectionType.Miscapitalization, pairsArray[i], new String[]{correction});
+                    errorList.add(pairsArray[i]);
+                    continue;
+                }
             }
             else if (!shouldBeUpper && capitalized) {
 
                 String correction = word.toLowerCase();
-                Window.AddCorrection(CorrectionType.Miscapitalization, pairsArray[i], new String[]{correction});
-                errorList.add(pairsArray[i]);
-                continue;
+                if(!Window.IsIgnoredCorrection(CorrectionType.Miscapitalization, pairsArray[i], new String[]{correction})){
+                    Window.AddCorrection(CorrectionType.Miscapitalization, pairsArray[i], new String[]{correction});
+                    errorList.add(pairsArray[i]);
+                    continue;
+                }
             }
 
             // check double words
@@ -110,8 +135,10 @@ public class Correction {
 
                 Pair<Integer, Integer> location = new Pair<Integer, Integer>(pairsArray[i].first - 1, pairsArray[i].second + 1);
 
-                Window.AddCorrection(CorrectionType.DoubleWords, location, new String[]{""});
-                errorList.add(pairsArray[i]);
+                if(!Window.IsIgnoredCorrection(CorrectionType.DoubleWords, location, new String[]{""})){
+                    Window.AddCorrection(CorrectionType.DoubleWords, location, new String[]{""});
+                    errorList.add(pairsArray[i]);
+                }
             }
         }
 

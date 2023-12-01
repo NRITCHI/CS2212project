@@ -87,8 +87,12 @@ public class TextDisplay {
      * @param replacement what it should be replaced with
      */
     public static void ReplaceSection(Pair<Integer, Integer> location, String replacement) {
-        String text = textbox.getText();
-        textbox.setText(text.substring(0, location.first) + replacement + text.substring(location.first + location.second));
+        try {
+            textbox.getStyledDocument().remove(location.first, location.second);
+            textbox.getStyledDocument().insertString(location.first, replacement, baseAttribute);
+        } catch (BadLocationException e) {
+            // should not happen, if it does it can be ignored
+        }
 
         StartCorrections();
     }
@@ -151,7 +155,7 @@ public class TextDisplay {
 
     public static String GetSection(Pair<Integer, Integer> location){
         try {
-            return textbox.getStyledDocument().getText(location.first, location.second);
+            return textbox.getText(location.first, location.second);//getStyledDocument().getText(location.first, location.second);
         } catch (BadLocationException e) {
             return "";
         }
