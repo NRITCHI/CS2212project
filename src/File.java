@@ -54,10 +54,11 @@ public class File {
             /**
             * confirm the file now exists in the directory chosen, and confirm the save to the user
             */
+            /* 
             if(Files.exists(path) && !Files.isDirectory(path)) {
                 JOptionPane.showMessageDialog(null, "File has been saved.");
             }
-
+*/
         }
     }
 }
