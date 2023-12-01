@@ -2,7 +2,7 @@ import java.nio.file.Files;
 import javax.swing.*;
 import javax.swing.filechooser.*;
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 
 public class File {
 
