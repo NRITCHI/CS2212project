@@ -2,7 +2,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.*;
 
 import javax.swing.*;
@@ -155,7 +154,6 @@ public class Window extends JFrame {
         popup.repaint();
     }
 
-    static int count = 0;
     private static JPanel CreateCorrectionBlock(CorrectionType type, Pair<Integer, Integer> location, String[] options){
         JPanel panel = new JPanel();
 
@@ -259,11 +257,10 @@ public class Window extends JFrame {
         }
         corrections.revalidate();
         corrections.repaint();
-        count = 0;
     }
 
-    public static boolean IsIgnoredCorrection(CorrectionType type, Pair<Integer, Integer> location, String[] options){
-        return ignoredCases.contains(new CorrectionCase(type, location, options));
+    public static boolean NotIgnoredCorrection(CorrectionType type, Pair<Integer, Integer> location, String[] options){
+        return !ignoredCases.contains(new CorrectionCase(type, location, options));
     }
         
     private void scheduleForceClose() {
@@ -278,20 +275,8 @@ public class Window extends JFrame {
         Window.this.dispatchEvent(new WindowEvent(Window.this, WindowEvent.WINDOW_CLOSING));
     }
 
-    public static void wait(int ms)
-    {
-        try
-        {
-            Thread.sleep(ms);
-        }
-        catch(InterruptedException ex)
-        {
-            Thread.currentThread().interrupt();
-        }
-    }
-
     public static void main(String[] args) throws FileNotFoundException {
         Dictionary.StartDictionary();
-        SwingUtilities.invokeLater(() -> new Window());
+        SwingUtilities.invokeLater(Window::new);
     }
 }

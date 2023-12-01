@@ -6,7 +6,7 @@ import java.nio.file.Paths;
 
 public class File {
 
-    private static JFileChooser fileChooser = new JFileChooser();
+    private static final JFileChooser fileChooser = new JFileChooser();
     private static String lastSaved = "";
 
   
@@ -34,7 +34,7 @@ public class File {
             }
         }
 
-        /**
+        /*
         * use fileChooser to select a file and open a dialogue box for selection
         */
         fileChooser.setFileFilter(new FileNameExtensionFilter("Text File","txt"));
@@ -44,7 +44,7 @@ public class File {
         if (result == JFileChooser.APPROVE_OPTION){
             String path = fileChooser.getSelectedFile().getAbsolutePath();
 
-            /**
+            /*
             * if the user does not select a text file, ask to select a different file
             */
             if(!path.endsWith(".txt")){
@@ -70,7 +70,7 @@ public class File {
         fileChooser.setFileFilter(new FileNameExtensionFilter("Text File","txt"));
         fileChooser.setAcceptAllFileFilterUsed(false);
 
-        /**
+        /*
         * allow the user to select a path using fileChooser and a name, and append .txt if the user forgets to add it
         */
         int result = fileChooser.showSaveDialog(null);
@@ -79,7 +79,7 @@ public class File {
             if(!path.endsWith(".txt")){
                 path += ".txt";
             }
-            /**
+            /*
             * confirm the file now exists in the directory chosen, and confirm the save to the user
             */
             

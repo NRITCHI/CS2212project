@@ -54,7 +54,7 @@ public class Correction {
             }
             if (spellingSuggestions != null) {
 
-                if(!Window.IsIgnoredCorrection(CorrectionType.Misspelling, pairsArray[i], spellingSuggestions)){
+                if(Window.NotIgnoredCorrection(CorrectionType.Misspelling, pairsArray[i], spellingSuggestions)){
                     Window.AddCorrection(CorrectionType.Misspelling, pairsArray[i], spellingSuggestions);
                     errorList.add(pairsArray[i]);
                     continue;
@@ -104,7 +104,7 @@ public class Correction {
                 if(allCaps)
                     correction = correction.toUpperCase();
 
-                if(!Window.IsIgnoredCorrection(CorrectionType.Miscapitalization, pairsArray[i], new String[]{correction})){
+                if(Window.NotIgnoredCorrection(CorrectionType.Miscapitalization, pairsArray[i], new String[]{correction})){
                     Window.AddCorrection(CorrectionType.Miscapitalization, pairsArray[i], new String[]{correction});
                     errorList.add(pairsArray[i]);
                     continue;
@@ -113,7 +113,7 @@ public class Correction {
             else if (!shouldBeUpper && capitalized) {
 
                 String correction = word.toLowerCase();
-                if(!Window.IsIgnoredCorrection(CorrectionType.Miscapitalization, pairsArray[i], new String[]{correction})){
+                if(Window.NotIgnoredCorrection(CorrectionType.Miscapitalization, pairsArray[i], new String[]{correction})){
                     Window.AddCorrection(CorrectionType.Miscapitalization, pairsArray[i], new String[]{correction});
                     errorList.add(pairsArray[i]);
                     continue;
@@ -133,20 +133,14 @@ public class Correction {
             // check if word is equal to prior word
             if(word.equals(text.substring(pairsArray[i-1].first, pairsArray[i-1].first + pairsArray[i-1].second))){
 
-                Pair<Integer, Integer> location = new Pair<Integer, Integer>(pairsArray[i].first - 1, pairsArray[i].second + 1);
+                Pair<Integer, Integer> location = new Pair<>(pairsArray[i].first - 1, pairsArray[i].second + 1);
 
-                if(!Window.IsIgnoredCorrection(CorrectionType.DoubleWords, location, new String[]{""})){
+                if(Window.NotIgnoredCorrection(CorrectionType.DoubleWords, location, new String[]{""})){
                     Window.AddCorrection(CorrectionType.DoubleWords, location, new String[]{""});
                     errorList.add(pairsArray[i]);
                 }
             }
         }
-
-        // Detect miscapitalization
-        //CheckCapitalization(text, pairsArray);
-
-        // Detect double words
-        //CorrectDoubleWords(text, pairsArray);
 
         Pair<Integer, Integer>[] errorArray = new Pair[]{};
         return errorList.toArray(errorArray);
@@ -213,78 +207,4 @@ public class Correction {
         return suggestions.toArray(new String[0]);
     }
 
-
-    private static void CheckCapitalization(String text, Pair<Integer, Integer>[] pairs) {
-        //List<String> capitalizationSuggestions = new ArrayList<>();
-        // Regular expression to match a word after a punctuation mark
-        Pattern pattern = Pattern.compile("(?<=\\.|!|\\?)\\s+[a-z]");
-        Matcher matcher = pattern.matcher(text);
-
-        while (matcher.find()) {
-            int startIndex = matcher.start() + 1; // Skipping the space
-            int wordLength = matcher.end() - startIndex;
-            Pair<Integer, Integer> pair = new Pair<>(startIndex, wordLength);
-
-
-            String suggestion = text.substring(startIndex, startIndex + 1).toUpperCase() + text.substring(startIndex + 1, startIndex + wordLength);
-            //capitalizationSuggestions.add(suggestion);
-            Window.AddCorrection(CorrectionType.Miscapitalization, pair, new String[]{suggestion});
-        }
-
-        // Regular expression to find words with mixed capitalization
-        pattern = Pattern.compile("\\b(?=[A-Za-z]*[a-z])(?=[A-Za-z]*[A-Z])[A-Za-z]+\\b");
-        matcher = pattern.matcher(text);
-
-        while (matcher.find()) {
-            int startIndex = matcher.start();
-            int wordLength = matcher.group().length();
-            Pair<Integer, Integer> pair = new Pair<>(startIndex, wordLength);
-
-            // AddCorrection for mixed capitalization with empty suggestions
-            String suggestion = text.substring(startIndex, startIndex + wordLength).toLowerCase();
-            //capitalizationSuggestions.add(suggestion);
-
-            Window.AddCorrection(CorrectionType.Miscapitalization, pair, new String[]{suggestion});
-        }
-
-        //for people places and things already capitalized in the dictionary
-        pattern = Pattern.compile("\\b[a-z]\\w*\\b");
-        matcher = pattern.matcher(text);
-
-        while (matcher.find()) {
-            String word = matcher.group();
-            if (!Dictionary.FindWord(word)) {
-                int startIndex = matcher.start();
-                int wordLength = word.length();
-                Pair<Integer, Integer> pair = new Pair<>(startIndex, wordLength);
-
-                // Suggestion: Capitalize the word
-                String suggestion = word.substring(0, 1).toUpperCase() + word.substring(1);
-                if(Dictionary.FindWord(suggestion)){
-                    Window.AddCorrection(CorrectionType.Miscapitalization, pair, new String[]{suggestion});
-                    //capitalizationSuggestions.add(suggestion);
-                }
-            }
-
-        }
-        //AddCorrection(CorrectionType.Miscapitalization, pair, capitalizationSuggestions);
-    }
-
-    // New method to detect and correct double words
-    private static void CorrectDoubleWords(String text, Pair<Integer, Integer>[] pairs) {
-        // Regular expression to match double words
-        Pattern pattern = Pattern.compile("\\b(\\w+)\\s+\\1\\b", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(text);
-
-        while (matcher.find()) {
-            int startIndex = matcher.start();
-            int wordLength = matcher.group().length();
-            Pair<Integer, Integer> pair = new Pair<>(startIndex, wordLength);
-
-            // AddCorrection for double words with empty suggestions
-            String suggestion = matcher.group(1);
-            Window.AddCorrection(CorrectionType.DoubleWords, pair, new String[]{suggestion});
-        
-        }
-    }
 }
