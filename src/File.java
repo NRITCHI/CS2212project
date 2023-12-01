@@ -31,6 +31,14 @@ public class File {
             */
             if(!path.endsWith(".txt")){
                 JOptionPane.showMessageDialog(null, "Unable to read file\nPlease choose a .txt file");
+                return;
+            }
+          
+            try {
+                String content = new String(Files.readAllBytes(Paths.get(path)));
+                TextDisplay.LoadText(content); // Assuming TextDisplay has a method LoadText to update the display
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "Error reading file");
             }
         }
     }
@@ -54,11 +62,13 @@ public class File {
             /**
             * confirm the file now exists in the directory chosen, and confirm the save to the user
             */
-            /* 
-            if(Files.exists(path) && !Files.isDirectory(path)) {
+            
+            try {
+                Files.write(Paths.get(path), TextDisplay.GetText().getBytes()); // Assuming TextDisplay has a method GetText
                 JOptionPane.showMessageDialog(null, "File has been saved.");
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "Error saving file");
             }
-*/
         }
     }
 }
