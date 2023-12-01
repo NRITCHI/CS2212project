@@ -36,7 +36,7 @@ public class File {
           
             try {
                 String content = new String(Files.readAllBytes(Paths.get(path)));
-                TextDisplay.LoadText(content); // Assuming TextDisplay has a method LoadText to update the display
+                TextDisplay.LoadText(content);
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(null, "Error reading file");
             }
@@ -64,7 +64,7 @@ public class File {
             */
             
             try {
-                Files.write(Paths.get(path), TextDisplay.GetText().getBytes()); // Assuming TextDisplay has a method GetText
+                Files.write(Paths.get(path), TextDisplay.GetText().getBytes());
                 JOptionPane.showMessageDialog(null, "File has been saved.");
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(null, "Error saving file");
