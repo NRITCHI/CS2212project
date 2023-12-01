@@ -4,12 +4,24 @@ import javax.swing.filechooser.*;
 import java.io.IOException;
 import java.nio.file.Paths;
 
+/**
+ * File is used for file management, such as creating, saving and loading documents
+ */
 public class File {
 
+    /**
+     * file chooser is a popup to choose a file location or a file to open
+     */
     private static final JFileChooser fileChooser = new JFileChooser();
+
+    /**
+     * the last saved text, used to see if document has been modified
+     */
     private static String lastSaved = "";
 
-  
+    /**
+     * creates a new blank document
+     */
     public static void New(){
         if(lastSaved.equals(TextDisplay.GetText())){
             TextDisplay.LoadText("");

@@ -83,7 +83,7 @@ public class TextDisplay {
 
     /**
      * replaces a section of text and starts checking for corrections again
-     * @param location what should be replaced
+     * @param location what should be replaced, first value is index, second value is size
      * @param replacement what it should be replaced with
      */
     public static void ReplaceSection(Pair<Integer, Integer> location, String replacement) {
@@ -153,6 +153,11 @@ public class TextDisplay {
         return textbox.getText();
     }
 
+    /**
+     * Gets a section of the whole text
+     * @param location the section to get, first value is index, second value is size
+     * @return the text in the location
+     */
     public static String GetSection(Pair<Integer, Integer> location){
         try {
             return textbox.getText(location.first, location.second);//getStyledDocument().getText(location.first, location.second);

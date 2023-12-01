@@ -10,24 +10,62 @@ import javax.swing.text.BadLocationException;
 
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 
+/**
+ * Main window of program, handles most UI of the application
+ */
 public class Window extends JFrame {
 
+    /**
+     * panel that holds the Correction Blocks
+     */
     private static JPanel corrections;
-    private static final ArrayList<JPanel> correctionTiles = new ArrayList<>();
+
+    /**
+     * all the displayed Correction Blocks
+     */
+    private static final ArrayList<JPanel> correctionBlocks = new ArrayList<>();
+
+    /**
+     * all the cases that have been marked as ignored
+     */
     private static final ArrayList<CorrectionCase> ignoredCases = new ArrayList<>(1024);
 
-
+    /**
+     * Current State of a correction, used to save as ignored
+     */
     private static class CorrectionCase{
+        /**
+         * type of correction
+         */
         public CorrectionType type;
+
+        /**
+         * location of corrections
+         */
         public Pair<Integer, Integer> location;
+
+        /**
+         * options correction could be
+         */
         public String[] options;
 
+        /**
+         * creates new correction with given values
+         * @param type value to set type as
+         * @param location value to set location as
+         * @param options value to set options as
+         */
         public CorrectionCase(CorrectionType type, Pair<Integer, Integer> location, String[] options){
             this.type = type;
             this.location = location;
             this.options = options;
         }
 
+        /**
+         * checks if CorrectionCase is equal to the given object
+         * @param obj to check if equal to
+         * @return if the objects are equal
+         */
         @Override
         public boolean equals(Object obj){
             if (obj == null)
@@ -47,6 +85,9 @@ public class Window extends JFrame {
         }
     }
 
+    /**
+     * Creates and displays the main window
+     */
     public Window() {
 
         // window
@@ -84,8 +125,7 @@ public class Window extends JFrame {
         });
         navbar.add(helpButton, BorderLayout.WEST);
 
-        // switch dictionary button
-
+        // dictionary button
         JButton dictionaryButton = new JButton("Dictionary");
         dictionaryButton.addActionListener(e -> ModifyDictionary());
         navbar.add(dictionaryButton);
@@ -115,6 +155,9 @@ public class Window extends JFrame {
         corrections.setLayout(new GridBagLayout());
     }
 
+    /**
+     * creates popup window to allow user to modify their user dictionary, saves on close
+     */
     private void ModifyDictionary(){
 
         // create popup
@@ -154,6 +197,13 @@ public class Window extends JFrame {
         popup.repaint();
     }
 
+    /**
+     * helper function to create a correction block
+     * @param type of correction block
+     * @param location of correction
+     * @param options that the correction could be
+     * @return Panel that contains the UI created
+     */
     private static JPanel CreateCorrectionBlock(CorrectionType type, Pair<Integer, Integer> location, String[] options){
         JPanel panel = new JPanel();
 
@@ -215,10 +265,16 @@ public class Window extends JFrame {
         panel.add(section);
         panel.add(choices);
 
-        correctionTiles.add(panel);
+        correctionBlocks.add(panel);
         return panel;
     }
 
+    /**
+     * Adds Correction to correction queue
+     * @param type of correction to be added
+     * @param location of correction to be potentially adjusted
+     * @param options that the correction could be
+     */
     public static void AddCorrection(CorrectionType type, Pair<Integer, Integer> location, String[] options) {
 
         // switch to ui thread
@@ -245,6 +301,9 @@ public class Window extends JFrame {
         corrections.repaint();
     }
 
+    /**
+     * removes all corrections from correction queue
+     */
     public static void ClearCorrectionQueue(){
         // switch to ui thread
         if (!SwingUtilities.isEventDispatchThread()) {
@@ -252,29 +311,46 @@ public class Window extends JFrame {
             return;
         }
 
-        for(JPanel panel: correctionTiles){
+        for(JPanel panel: correctionBlocks){
             corrections.remove(panel);
         }
         corrections.revalidate();
         corrections.repaint();
     }
 
+    /**
+     * checks if correction case is considered ignored
+     * @param type of correction
+     * @param location of correction
+     * @param options that correction could be
+     * @return if the correction should be not be ignored
+     */
     public static boolean NotIgnoredCorrection(CorrectionType type, Pair<Integer, Integer> location, String[] options){
         return !ignoredCases.contains(new CorrectionCase(type, location, options));
     }
-        
+
+    /**
+     * Schedules closing whole program
+     */
     private void scheduleForceClose() {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.schedule(this::forceCloseProgram, 4, TimeUnit.SECONDS); // Delay for 4 second
         scheduler.shutdown();
     }
 
-    
+    /**
+     * Closes whole program
+     */
     private void forceCloseProgram() {
 
         Window.this.dispatchEvent(new WindowEvent(Window.this, WindowEvent.WINDOW_CLOSING));
     }
 
+    /**
+     * MAIN function
+     * @param args N/A
+     * @throws FileNotFoundException thrown if dictionary/dict.txt can not be opened
+     */
     public static void main(String[] args) throws FileNotFoundException {
         Dictionary.StartDictionary();
         SwingUtilities.invokeLater(Window::new);

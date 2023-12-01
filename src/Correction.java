@@ -1,17 +1,23 @@
-
-
-// Correction class with methods as specified in the diagram
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Correction is used to find what corrections should be made
+ */
 public class Correction {
 
+    /**
+     * the different types of punctuation a sentence can end in
+     */
     private static ArrayList<Character> endingPunctuation;
 
-    // Method to get corrections for a given text
+    /**
+     * Breaks up text into words and checks each for possible corrections
+     * @param text whole text document
+     * @return locations of corrections, used to underline in red, first value is index, second value is size
+     */
     public static Pair<Integer, Integer>[] GetCorrections(String text){
 
         if(endingPunctuation == null){
@@ -148,7 +154,11 @@ public class Correction {
 
 
 
-    // Method to check spelling in a given string
+     /**
+     * Method to find alternative spellings of a given word
+     * @param word to check for alternatives to
+     * @return alternate words
+     */
     public static String[] CheckSpelling(String word) {
     
 

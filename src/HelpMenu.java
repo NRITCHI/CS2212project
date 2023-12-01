@@ -1,7 +1,13 @@
 import javax.swing.*;
 
+/**
+ * Used to close the program if frozen
+ */
 public class HelpMenu extends JFrame {
 
+    /**
+     * sets up window
+     */
     public HelpMenu() {
         // Set up the help menu window
         setTitle("Help Menu");
@@ -16,7 +22,9 @@ public class HelpMenu extends JFrame {
         setVisible(false);
     }
 
-    // Method to show the help menu
+    /**
+     * Method to show the help menu
+     */
     public void showWindow() {
         setVisible(true);
     }
