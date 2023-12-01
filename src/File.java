@@ -7,16 +7,32 @@ import java.nio.file.Paths;
 public class File {
 
     private static JFileChooser fileChooser = new JFileChooser();
+    private static String lastSaved = "";
 
   
     public static void New(){
-		TextDisplay.LoadText("");
+        if(lastSaved.equals(TextDisplay.GetText())){
+            TextDisplay.LoadText("");
+        }
+        else{
+            int a = JOptionPane.showConfirmDialog(null, "You Have Unsaved Work\n Are you sure?", "Create New File", JOptionPane.YES_NO_OPTION);
+            if(a == 0){
+                TextDisplay.LoadText("");
+            }
+        }
     }
 
     /**
     * method to load a file
     */
     public static void Load(){
+
+        if(!lastSaved.equals(TextDisplay.GetText())){
+            int a = JOptionPane.showConfirmDialog(null, "You Have Unsaved Work\n Are you sure?", "Create New File", JOptionPane.YES_NO_OPTION);
+            if(a == 1){
+                return;
+            }
+        }
 
         /**
         * use fileChooser to select a file and open a dialogue box for selection
@@ -43,6 +59,8 @@ public class File {
                 JOptionPane.showMessageDialog(null, "Error reading file");
             }
         }
+
+        lastSaved = TextDisplay.GetText();
     }
 
     /**
