@@ -10,7 +10,7 @@ public class File {
 
   
     public static void New(){
-
+		TextDisplay.LoadText("");
     }
 
     /**
