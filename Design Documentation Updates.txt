@@ -1,0 +1,21 @@
+
+New Classes:
+- Trie && TrieNode
+    Data structure used by dictionary to efficiently store strings optimized for finding and adding
+
+- Pair<X, Y>
+    Simple way to store locations, mentioned on prior Diagram but not defined
+
+- CorrectionCase
+    Stores state of a single condition to make it easier to check if a state is ignored
+
+- Listener
+    Decides when to automatically check for corrections again
+
+
+
+Other Notes:
+- Added seperate thread for running correctons, managed by TextDisplay
+- File paths removed from File functions, now file paths are chosen within the File functions.
+- Removed unused functions such as Correction.CheckCapitalization() and Dictionary.ReloadDictionary()
+- Added more detail to whole diagram
